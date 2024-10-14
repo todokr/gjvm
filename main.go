@@ -1,53 +1,11 @@
 package main
 
 import (
-	"os"
-	"encoding/binary"
 	"fmt"
+	"os"
+
+	"gjvm/classfile"
 )
-
-type ClassFile struct {
-	magic        uint32
-	minorVersion uint16
-	majorVersion uint16
-	constantPoolCount uint16
-	// cpInfo       ConstantPool
-	// accessFlags  uint16
-	// thisClass    uint16
-	// superClass   uint16
-	// interfaceCount uint16
-	// interfaces   []*InterfaceInfo
-	// fieldCount   uint16
-	// fields       []*FieldInfo
-	// methods      []*MethodInfo
-	// attributes   []AttributeInfo
-}
-
-type ConstantPool []ConstantInfo
-type ConstantInfo interface{}
-type InterfaceInfo struct {
-	index uint16
-}
-
-type FieldInfo struct {
-	accessFlags     uint16
-	nameIndex       uint16
-	descriptorIndex uint16
-	attributes      []AttributeInfo
-}
-
-type MethodInfo struct {
-	accessFlags     uint16
-	nameIndex       uint16
-	descriptorIndex uint16
-	attributes      []AttributeInfo
-}
-
-type AttributeInfo interface{}
-
-func parseClassFile(data []byte) (cf *ClassFile, err error) {
-	return
-}
 
 func main() {
 	file, err := os.Open("./java/Hello.class")
@@ -56,8 +14,35 @@ func main() {
 	}
 	defer file.Close()
 
-	classFile := &ClassFile{}
+	//	classFile := &ClassFile{}
 
-	binary.Read(file, binary.BigEndian, &classFile)
+	//	binary.Read(file, binary.BigEndian, &classFile)
+	parser := classfile.NewClassFileParser(file)
+	class, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 
+	fmt.Printf("minorVersion: %#04d\n", class.MinorVersion)
+	fmt.Printf("majorVersion: %#04d\n", class.MajorVersion)
+	fmt.Printf("constantPoolCount: %d\n", class.ConstantPoolCount)
+	for i := 1; i < int(class.ConstantPoolCount); i++ {
+		fmt.Printf("cp[%d]: %s\n", i, class.ConstantPool[i])
+	}
+	fmt.Printf("accessFlags: %s\n", class.AccessFlags)
+	
+	fmt.Printf("thisClass: #%d\n", class.ThisClass)
+	fmt.Printf("superClass: #%d\n", class.SuperClass)
+	fmt.Printf("interfacesCount: %d\n", class.InterfacesCount)
+	for i := 0; i < int(class.InterfacesCount); i++ {
+		fmt.Printf("interface[%d]: #%d\n", i, class.Interfaces[i])
+	}
+	fmt.Printf("fieldCount: %d\n", class.FieldCount)
+	for i := 0; i < int(class.FieldCount); i++ {
+		fmt.Printf("field[%d]: %s\n", i, class.Fields[i])
+	}
+	fmt.Printf("methodCount: %d\n", class.MethodCount)
+	for i := 0; i < int(class.MethodCount); i++ {
+		fmt.Printf("method[%d]: %s\n", i, class.Methods[i])
+	}
 }

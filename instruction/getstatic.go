@@ -1,0 +1,6 @@
+package instruction
+
+func GetStatic() {
+	
+	
+}
