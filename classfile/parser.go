@@ -154,13 +154,23 @@ func (self ClassFileParser) parseMethodInfo(size uint16) ([]MethodInfo, error) {
 	for i := 0; i < int(size); i++ {
 		accessFlags := AccessFlags(self.reader.ReadU2())
 		nameIndex := self.reader.ReadU2()
+		name := self.cp[nameIndex].(*ConstantUtf8Info).Value()
 		descriptorIndex := self.reader.ReadU2()
+		descriptor := self.cp[descriptorIndex].(*ConstantUtf8Info).Value()
 		attributesCount := self.reader.ReadU2()
 		attributes, err := self.parseAttributeInfo(attributesCount)
+		
+		code := []byte{}
+		for _, attr := range attributes {
+			switch attr.(type) {
+			case CodeAttribute:
+				code = attr.(CodeAttribute).Code
+			}
+		}
 		if err != nil {
 			return nil, err
 		}
-		methods[i] = MethodInfo{accessFlags, nameIndex, descriptorIndex, attributes}
+		methods[i] = MethodInfo{accessFlags, name, nameIndex, descriptor, descriptorIndex, attributes, code}
 	}
 	return methods, nil
 }

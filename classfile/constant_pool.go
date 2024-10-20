@@ -2,6 +2,8 @@ package classfile
 
 import (
 	"fmt"
+	"strings"
+	"regexp"
 )
 
 type ConstantPool []ConstantInfo
@@ -30,144 +32,189 @@ const (
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1
 type ConstantClassInfo struct {
-	nameIndex uint16
+	NameIndex uint16
 }
 func (self ConstantClassInfo) String() string {
-	return fmt.Sprintf("ConstantClassInfo: nameIndex #%d", self.nameIndex)
+	return fmt.Sprintf("ConstantClassInfo: nameIndex #%d", self.NameIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2
 type ConstantFieldrefInfo struct {
-	classIndex       uint16
-	nameAndTypeIndex uint16
+	ClassIndex       uint16
+	NameAndTypeIndex uint16
 }
 func (self ConstantFieldrefInfo) String() string {
-	return fmt.Sprintf("ConstantFieldInfo: classIndex #%d, nameAndTypeIndex #%d", self.classIndex, self.nameAndTypeIndex)
+	return fmt.Sprintf("ConstantFieldInfo: classIndex #%d, nameAndTypeIndex #%d", self.ClassIndex, self.NameAndTypeIndex)
+}
+func (self ConstantFieldrefInfo) Resolve(cp ConstantPool) FieldRef {
+	class := cp[self.ClassIndex].(*ConstantClassInfo)
+	className := cp[class.NameIndex].(*ConstantUtf8Info).Value()
+	className = strings.ReplaceAll(className, "/", ".")
+
+	nameAndType := cp[self.NameAndTypeIndex].(*ConstantNameAndTypeInfo)
+	name := cp[nameAndType.NameIndex].(*ConstantUtf8Info).Value()
+	descriptor := cp[nameAndType.DescriptorIndex].(*ConstantUtf8Info).Value()
+	return FieldRef{className, name, descriptor}
+}
+
+type FieldRef struct {
+	Class string
+	Name string
+	Descriptor string
 }
 
 type ConstantMethodrefInfo struct {
-	classIndex       uint16
-	nameAndTypeIndex uint16
+	ClassIndex       uint16
+	NameAndTypeIndex uint16
 }
 func (self ConstantMethodrefInfo) String() string {
-	return fmt.Sprintf("ConstantMethodrefInfo: classIndex #%d, nameAndTypeIndex #%d", self.classIndex, self.nameAndTypeIndex)
+	return fmt.Sprintf("ConstantMethodrefInfo: classIndex #%d, nameAndTypeIndex #%d", self.ClassIndex, self.NameAndTypeIndex)
+}
+
+// https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.3.2
+const ArgPattern = `L([^;]+);`
+var argRegexp = regexp.MustCompile(ArgPattern)
+func (self ConstantMethodrefInfo) Resolve(cp ConstantPool) MethodRef {
+	class := cp[self.ClassIndex].(*ConstantClassInfo)
+	className := cp[class.NameIndex].(*ConstantUtf8Info).Value()
+	className = strings.ReplaceAll(className, "/", ".")
+	nameAndType := cp[self.NameAndTypeIndex].(*ConstantNameAndTypeInfo)
+	name := cp[nameAndType.NameIndex].(*ConstantUtf8Info).Value()
+	descriptor := cp[nameAndType.DescriptorIndex].(*ConstantUtf8Info).Value()
+	args := []string{}
+	for _, match := range argRegexp.FindAllStringSubmatch(descriptor, -1) {
+		arg := strings.ReplaceAll(match[1], "/", ".")
+		args = append(args, arg)
+	}
+
+	return MethodRef{className, name, args}
+}
+type MethodRef struct {
+	Class string
+	Name string
+	ArgTypes []string
 }
 
 type ConstantInterfaceMethodrefInfo struct {
-	classIndex       uint16
-	nameAndTypeIndex uint16
+	ClassIndex       uint16
+	NameAndTypeIndex uint16
 }
+
 func (self ConstantInterfaceMethodrefInfo) String() string {
-	return fmt.Sprintf("ConstantInterfaceMethodrefInfo: classIndex #%d, nameAndTypeIndex #%d", self.classIndex, self.nameAndTypeIndex)
+	return fmt.Sprintf("ConstantInterfaceMethodrefInfo: classIndex #%d, nameAndTypeIndex #%d", self.ClassIndex, self.NameAndTypeIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.3
 type ConstantStringInfo struct {
-	stringIndex uint16
+	StringIndex uint16
 }
 func (self ConstantStringInfo) String() string {
-	return fmt.Sprintf("ConstantStringInfo: stringIndex #%d", self.stringIndex)
+	return fmt.Sprintf("ConstantStringInfo: stringIndex #%d", self.StringIndex)
+}
+
+func (self ConstantStringInfo) Resolve(cp ConstantPool) string {
+	return cp[self.StringIndex].(*ConstantUtf8Info).Value()
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4
 type ConstantIntegerInfo struct {
-	bytes []byte
+	Bytes []byte
 }
 func (self ConstantIntegerInfo) String() string {
-	return fmt.Sprintf("ConstantIntegerInfo: %d", self.bytes)
+	return fmt.Sprintf("ConstantIntegerInfo: %d", self.Bytes)
 }
 
 type ConstantFloatInfo struct {
-	bytes []byte
+	Bytes []byte
 }
 func (self ConstantFloatInfo) String() string {
-	return fmt.Sprintf("ConstantFloatInfo: %d", self.bytes)
+	return fmt.Sprintf("ConstantFloatInfo: %d", self.Bytes)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.5
 type ConstantLongInfo struct {
-	highBytes uint32
-	lowBytes  uint32
+	HighBytes uint32
+	LowBytes  uint32
 }
 func (self ConstantLongInfo) String() string {
-	return fmt.Sprintf("ConstantLongInfo: highBytes %d, lowBytes %d", self.highBytes, self.lowBytes)
+	return fmt.Sprintf("ConstantLongInfo: highBytes %d, lowBytes %d", self.HighBytes, self.LowBytes)
 }
 
 type ConstantDoubleInfo struct {
-	highBytes uint32
-	lowBytes  uint32
+	HighBytes uint32
+	LowBytes  uint32
 }
 func (self ConstantDoubleInfo) String() string {
-	return fmt.Sprintf("ConstantDoubleInfo: highBytes %d, lowBytes %d", self.highBytes, self.lowBytes)
+	return fmt.Sprintf("ConstantDoubleInfo: highBytes %d, lowBytes %d", self.HighBytes, self.LowBytes)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.6
 type ConstantNameAndTypeInfo struct {
-	nameIndex       uint16
-	descriptorIndex uint16
+	NameIndex       uint16
+	DescriptorIndex uint16
 }
 func (self ConstantNameAndTypeInfo) String() string {
-	return fmt.Sprintf("ConstantNameAndTypeInfo: nameIndex #%d, descriptorIndex #%d", self.nameIndex, self.descriptorIndex)
+	return fmt.Sprintf("ConstantNameAndTypeInfo: nameIndex #%d, descriptorIndex #%d", self.NameIndex, self.DescriptorIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.7
 type ConstantUtf8Info struct {
-	length uint16
-	bytes  []byte
+	Length uint16
+	Bytes  []byte
 }
 func (self ConstantUtf8Info) String() string {
-	return fmt.Sprintf("ConstantUtf8Info: length %d, %s", self.length, string(self.bytes))
+	return fmt.Sprintf("ConstantUtf8Info: length %d, %s", self.Length, string(self.Bytes))
 }
 func (self ConstantUtf8Info) Value() string {
-	return string(self.bytes)
+	return string(self.Bytes)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.8
 type ConstantMethodHandleInfo struct {
-	referenceKind  uint8
-	referenceIndex uint16
+	ReferenceKind  uint8
+	ReferenceIndex uint16
 }
 func (self ConstantMethodHandleInfo) String() string {
-	return fmt.Sprintf("ConstantMethodHandleInfo: referenceKind %d, referenceIndex #%d", self.referenceKind, self.referenceIndex)
+	return fmt.Sprintf("ConstantMethodHandleInfo: referenceKind %d, referenceIndex #%d", self.ReferenceKind, self.ReferenceIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.9
 type ConstantMethodTypeInfo struct {
-	descriptorIndex uint16
+	DescriptorIndex uint16
 }
 func (self ConstantMethodTypeInfo) String() string {
-	return fmt.Sprintf("ConstantMethodTypeInfo: descriptorIndex #%d", self.descriptorIndex)
+	return fmt.Sprintf("ConstantMethodTypeInfo: descriptorIndex #%d", self.DescriptorIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10
 type ConstantDynamicInfo struct {
-	bootstrapMethodAttrIndex uint16
-	nameAndTypeIndex         uint16
+	BootstrapMethodAttrIndex uint16
+	NameAndTypeIndex         uint16
 }
 func (self ConstantDynamicInfo) String() string {
-	return fmt.Sprintf("ConstantDynamicInfo: bootstrapMethodAttrIndex #%d, nameAndTypeIndex #%d", self.bootstrapMethodAttrIndex, self.nameAndTypeIndex)
+	return fmt.Sprintf("ConstantDynamicInfo: bootstrapMethodAttrIndex #%d, nameAndTypeIndex #%d", self.BootstrapMethodAttrIndex, self.NameAndTypeIndex)
 }
 
 type ConstantInvokeDynamicInfo struct {
-	bootstrapMethodAttrIndex uint16
-	nameAndTypeIndex         uint16
+	BootstrapMethodAttrIndex uint16
+	NameAndTypeIndex         uint16
 }
 func (self ConstantInvokeDynamicInfo) String() string {
-	return fmt.Sprintf("ConstantInvokeDynamicInfo: bootstrapMethodAttrIndex #%d, nameAndTypeIndex #%d", self.bootstrapMethodAttrIndex, self.nameAndTypeIndex)
+	return fmt.Sprintf("ConstantInvokeDynamicInfo: bootstrapMethodAttrIndex #%d, nameAndTypeIndex #%d", self.BootstrapMethodAttrIndex, self.NameAndTypeIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.11
 type ConstantModuleInfo struct {
-	nameIndex uint16
+	NameIndex uint16
 }
 func (self ConstantModuleInfo) String() string {
-	return fmt.Sprintf("ConstantModuleInfo: nameIndex #%d", self.nameIndex)
+	return fmt.Sprintf("ConstantModuleInfo: nameIndex #%d", self.NameIndex)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.12
 type ConstantPackageInfo struct {
-	nameIndex uint16
+	NameIndex uint16
 }
 func (self ConstantPackageInfo) String() string {
-	return fmt.Sprintf("ConstantPackageInfo: nameIndex #%d", self.nameIndex)
+	return fmt.Sprintf("ConstantPackageInfo: nameIndex #%d", self.NameIndex)
 }

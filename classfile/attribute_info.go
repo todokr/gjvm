@@ -16,7 +16,7 @@ type NotImplementedAttributeInfo struct {
 }
 
 func (self NotImplementedAttributeInfo) String() string {
-	return fmt.Sprintf("UnknownAttributeInfo{AttributeName=%s, AttributeLength=%d}", self.AttributeName, self.AttributeLength)
+	return fmt.Sprintf("NotImplementedAttribute{AttributeName=%s, AttributeLength=%d}", self.AttributeName, self.AttributeLength)
 }
 
 // https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.7
@@ -41,7 +41,7 @@ const (
 	// Signature                                  = "Signature"
 	// SourceFile                                 = "SourceFile"
 	// SourceDebugExtension                       = "SourceDebugExtension"
-	// LineNumberTable                            = "LineNumberTable"
+	// LineNumberTable = "LineNumberTable"
 	// LocalVariableTable                         = "LocalVariableTable"
 	// LocalVariableTypeTable                     = "LocalVariableTypeTable"
 	// Deprecated                                 = "Deprecated"
@@ -90,7 +90,7 @@ func (self ClassFileParser) parseAttributeInfo(size uint16) ([]AttributeInfo, er
 		// case SourceDebugExtension:
 		// 	attributes[i] = self.parseSourceDebugExtensionAttribute(nameIndex, attrLen)
 		// case LineNumberTable:
-		// 	attributes[i] = self.parseLineNumberTableAttribute(nameIndex, attrLen)
+		//	attributes[i] = self.parseLineNumberTableAttribute(nameIndex, attrLen)
 		// case LocalVariableTable:
 		// 	attributes[i] = self.parseLocalVariableTableAttribute(nameIndex, attrLen)
 		// case LocalVariableTypeTable:

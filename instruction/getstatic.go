@@ -1,6 +1,0 @@
-package instruction
-
-func GetStatic() {
-	
-	
-}

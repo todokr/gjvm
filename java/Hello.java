@@ -1,9 +1,7 @@
 
-@Deprecated
-public class Hello implements java.io.Serializable {
-    private static String Msg = "Kaname";
+public class Hello {
     public static void main(String[] args) {
-        System.out.println("Hello, " + Msg);
+        System.out.println("Hello world");
     }
 }
 
