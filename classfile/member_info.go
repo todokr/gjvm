@@ -19,10 +19,10 @@ type FieldInfo struct {
 	Attributes      []AttributeInfo
 }
 
-func (self FieldInfo) String() string {
-	s := fmt.Sprintf("FieldInfo: accessFlags %v, nameIndex #%d, descriptorIndex #%d,", self.AccessFlags, self.NameIndex, self.DescriptorIndex)
+func (f FieldInfo) String() string {
+	s := fmt.Sprintf("FieldInfo: accessFlags %v, nameIndex #%d, descriptorIndex #%d,", f.AccessFlags, f.NameIndex, f.DescriptorIndex)
 	attrs := []string{}
-	for _, attr := range self.Attributes {
+	for _, attr := range f.Attributes {
 		attrs = append(attrs, attr.String())
 	}
 	if len(attrs) > 0 {
@@ -48,11 +48,11 @@ type MethodInfo struct {
 	Code            []byte
 }
 
-func (self MethodInfo) String() string {
-	s := fmt.Sprintf("MethodInfo: accessFlags %v, name %s, descriptor %s\n", self.AccessFlags, self.Name, self.Descriptor)
-	s = s + fmt.Sprintf("code %v", self.Code)
+func (m MethodInfo) String() string {
+	s := fmt.Sprintf("MethodInfo: accessFlags %v, name %s, descriptor %s\n", m.AccessFlags, m.Name, m.Descriptor)
+	s = s + fmt.Sprintf("code %v", m.Code)
 	attrs := []string{}
-	for _, attr := range self.Attributes {
+	for _, attr := range m.Attributes {
 		attrs = append(attrs, attr.String())
 	}
 	if len(attrs) > 0 {

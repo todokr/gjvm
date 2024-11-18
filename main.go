@@ -14,10 +14,7 @@ func main() {
 		panic(err)
 	}
 	defer file.Close()
-
-	//	classFile := &ClassFile{}
-
-	//	binary.Read(file, binary.BigEndian, &classFile)
+	
 	parser := classfile.NewClassFileParser(file)
 	class, err := parser.Parse()
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// Parses a Java class file
 type ClassFileParser struct {
 	reader *ClassReader
 	cp     []ConstantInfo
@@ -15,6 +16,7 @@ func NewClassFileParser(reader io.Reader) *ClassFileParser {
 	return &ClassFileParser{r, nil}
 }
 
+// Central method to parse a class file
 func (self *ClassFileParser) Parse() (*ClassFile, error) {
 	magic := self.reader.ReadU4()
 	if !validateMagic(magic) {

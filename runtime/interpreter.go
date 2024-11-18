@@ -112,16 +112,16 @@ type GetStatic struct {
 	Descriptor string
 }
 
-func (self *GetStatic) String() string {
-	return fmt.Sprintf("0xb2 getstatic: %s.%s %s", self.Class, self.Name, self.Descriptor)
+func (gs *GetStatic) String() string {
+	return fmt.Sprintf("0xb2 getstatic: %s.%s %s", gs.Class, gs.Name, gs.Descriptor)
 }
 
 type Ldc struct {
 	value any
 }
 
-func (self *Ldc) String() string {
-	return fmt.Sprintf("0x12 ldc: %v", self.value)
+func (ldc *Ldc) String() string {
+	return fmt.Sprintf("0x12 ldc: %v", ldc.value)
 }
 
 type InvokeVirtual struct {
@@ -130,13 +130,13 @@ type InvokeVirtual struct {
 	ArgTypes []string
 }
 
-func (self *InvokeVirtual) String() string {
-	return fmt.Sprintf("0xb6 invokevirtual: %s.%s %v", self.Class, self.Name, self.ArgTypes)
+func (iv *InvokeVirtual) String() string {
+	return fmt.Sprintf("0xb6 invokevirtual: %s.%s %v", iv.Class, iv.Name, iv.ArgTypes)
 }
 
 type Return struct{}
 
-func (self *Return) String() string {
+func (r *Return) String() string {
 	return fmt.Sprintf("0xb1 return")
 }
 
@@ -150,12 +150,12 @@ func (u *Unsupported) String() string {
 
 type OperandStack []interface{}
 
-func (self *OperandStack) Push(value interface{}) {
-	*self = append(*self, value)
+func (s *OperandStack) Push(value interface{}) {
+	*s = append(*s, value)
 }
-func (self *OperandStack) Pop() interface{} {
-	v := (*self)[len(*self)-1]
-	*self = (*self)[:len(*self)-1]
+func (s *OperandStack) Pop() interface{} {
+	v := (*s)[len(*s)-1]
+	*s = (*s)[:len(*s)-1]
 	return v
 }
 func NewOperandStack() *OperandStack {
