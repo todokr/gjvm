@@ -43,9 +43,8 @@ func Interpret(code []byte, stack *OperandStack, cp classfile.ConstantPool) {
 					args[i] = frame.(*Ldc).value
 				}
 			}
-
-			callable := stack.Pop().(*GetStatic)
-			method := fmt.Sprintf("%s.%s.%s", callable.Class, callable.Name, frame.Name)
+			// static := stack.Pop().(*GetStatic)
+			method := fmt.Sprintf("%s.%s", frame.Class, frame.Name)
 			sys.Call(method, args...)
 		}
 	}

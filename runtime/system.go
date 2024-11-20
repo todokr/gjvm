@@ -10,7 +10,7 @@ func NewSystem() *System {
 
 func (s *System) Call(Method string, args ...any) (any, error) {
 	switch Method {
-	case"java.lang.System.out.println":
+	case"java.io.PrintStream.println":
 		s.Out.println(args[0])
 		return nil, nil
 	}

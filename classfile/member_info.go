@@ -50,13 +50,12 @@ type MethodInfo struct {
 
 func (m MethodInfo) String() string {
 	s := fmt.Sprintf("MethodInfo: accessFlags %v, name %s, descriptor %s\n", m.AccessFlags, m.Name, m.Descriptor)
-	s = s + fmt.Sprintf("code %v", m.Code)
 	attrs := []string{}
 	for _, attr := range m.Attributes {
 		attrs = append(attrs, attr.String())
 	}
 	if len(attrs) > 0 {
-		s = s + "\n  " + strings.Join(attrs, " ")
+		s = s + "  " + strings.Join(attrs, " ")
 	}
 	return s
 }

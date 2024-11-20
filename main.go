@@ -5,16 +5,17 @@ import (
 	"os"
 
 	"gjvm/classfile"
-	"gjvm/runtime"
+		"gjvm/runtime"
 )
 
 func main() {
-	file, err := os.Open("./java/Hello.class")
+	f := os.Args[1]
+	file, err := os.Open(f)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	
+
 	parser := classfile.NewClassFileParser(file)
 	class, err := parser.Parse()
 	if err != nil {
@@ -25,7 +26,7 @@ func main() {
 	fmt.Printf("majorVersion: %04d\n", class.MajorVersion)
 	fmt.Printf("constantPoolCount: %d\n", class.ConstantPoolCount)
 	for i := 1; i < int(class.ConstantPoolCount); i++ {
-		fmt.Printf("cp[%d]: %s\n", i, class.ConstantPool[i])
+		fmt.Printf("#%d: %s\n", i, class.ConstantPool[i])
 	}
 	fmt.Printf("accessFlags: %s\n", class.AccessFlags)
 	
@@ -66,11 +67,15 @@ func main() {
 
 
 	fmt.Println("=================================================================")
-	fmt.Printf("main code: %v\n", main.Code)
+	cs := ""
+	for i := 0; i < len(main.Code); i++ {
+		cs += fmt.Sprintf("%#x ", main.Code[i])
+	}
+	fmt.Printf("main code: [ %v]\n", cs)
 	fmt.Println("=================================================================")
 
-	stack := runtime.NewOperandStack()
-	runtime.Interpret(main.Code, stack, class.ConstantPool)
+		stack := runtime.NewOperandStack()
+		runtime.Interpret(main.Code, stack, class.ConstantPool)
 
 	fmt.Println()
 }
